@@ -2,13 +2,14 @@
 
 ## 1. Visão Geral
 
-Sistema web voltado para nutricionistas autônomos ou pequenas clínicas, permitindo o gerenciamento de pacientes, criação e envio de planos alimentares, e acompanhamento periódico da evolução do paciente através de questionários com prazos personalizados.
+Sistema web voltado para nutricionistas autônomos ou pequenas clínicas, permitindo o gerenciamento de pacientes e o acompanhamento periódico da evolução do paciente através de questionários com prazos personalizados.
 
-**Objetivo principal:** centralizar o cadastro de pacientes, a prescrição de planos alimentares e o acompanhamento pós-consulta em um único sistema, reduzindo o uso de planilhas, PDFs avulsos e mensagens manuais via WhatsApp.
+**Objetivo principal:** centralizar o cadastro de pacientes e o acompanhamento pós-consulta em um único sistema, reduzindo o uso de planilhas e mensagens manuais via WhatsApp.
 
-**Perfis de usuário:**
-- **Nutricionista (admin):** cadastra pacientes, cria planos, envia questionários, acompanha respostas.
-- **Paciente:** acessa seu plano alimentar e responde aos questionários enviados (via link ou área logada).
+**Acesso ao sistema:** a plataforma é de uso exclusivo da nutricionista. Não há login ou área logada para o paciente — o paciente apenas recebe o link do questionário pelo canal escolhido (e-mail, WhatsApp etc.) e responde diretamente por esse link, sem necessidade de cadastro de acesso ou senha.
+
+**Perfil de usuário:**
+- **Nutricionista (único usuário do sistema):** cadastra pacientes, cria e envia questionários, acompanha respostas.
 
 ---
 
@@ -35,73 +36,71 @@ Sistema web voltado para nutricionistas autônomos ou pequenas clínicas, permit
 - Status do paciente: ativo, inativo, em pausa
 
 **Requisitos não funcionais:**
-- Dados sensíveis de saúde devem seguir boas práticas de proteção de dados (LGPD), com controle de acesso restrito ao próprio nutricionista
+- Dados sensíveis de saúde devem seguir boas práticas de proteção de dados (LGPD), com controle de acesso restrito à nutricionista
 
 ---
 
-### 2.2 Cadastro de Plano Alimentar
+### 2.2 Questionário de Acompanhamento com Data Personalizada
 
-**Descrição:** tela para criação, edição e envio de planos alimentares vinculados a um paciente.
-
-**Estrutura sugerida do plano:**
-- Vínculo obrigatório com um paciente cadastrado
-- Nome/identificação do plano (ex: "Plano de emagrecimento — Fase 1")
-- Período de validade do plano (data início e fim)
-- Divisão por refeições (café da manhã, lanche da manhã, almoço, lanche da tarde, jantar, ceia — customizável)
-- Para cada refeição:
-  - Lista de alimentos/itens
-  - Quantidade e unidade de medida (g, ml, unidade, colher, xícara etc.)
-  - Observações (ex: substituições permitidas, modo de preparo)
-- Informações nutricionais totais do dia (calorias, macronutrientes) — calculado automaticamente ou inserido manualmente
-- Restrições consideradas automaticamente com base nas alergias cadastradas do paciente (alerta caso um alimento conflite)
-- Campo de observações gerais do plano (orientações de hidratação, suplementação, etc.)
-
-**Funcionalidades da tela:**
-- Biblioteca de alimentos reutilizável (banco de alimentos com informações nutricionais) para facilitar a montagem do plano
-- Duplicar plano existente como base para um novo (útil para reaproveitar estrutura entre pacientes ou fases)
-- Histórico de planos por paciente (versionamento — permite comparar planos anteriores)
-- Exportação do plano em PDF para impressão ou envio
-- Envio do plano diretamente ao paciente (e-mail, link de acesso ou notificação no sistema)
-
----
-
-### 2.3 Questionário de Acompanhamento com Data Personalizada
-
-**Descrição:** funcionalidade para o nutricionista criar e agendar o envio de questionários de acompanhamento, com prazo definido de forma flexível (ex: 1 semana, 2 meses, 15 dias) a partir da data de início do plano ou de uma data específica.
+**Descrição:** funcionalidade para o nutricionista criar e agendar o envio de questionários de acompanhamento, com prazo definido de forma flexível (ex: 1 semana, 2 meses, 15 dias) a partir do cadastro do paciente ou de uma data específica.
 
 **Configuração do questionário:**
-- Vínculo com um paciente (e opcionalmente com um plano alimentar específico)
+- Vínculo com um paciente cadastrado
 - Título e descrição do questionário
 - Banco de perguntas reutilizável, com tipos de resposta variados:
   - Texto livre
   - Múltipla escolha
-  - Escala (ex: de 1 a 5 — nível de fome, satisfação, adesão ao plano)
+  - Escala (ex: de 1 a 5 — nível de fome, satisfação, adesão à orientação)
   - Numérico (ex: peso atual)
   - Sim/Não
-- Perguntas sugeridas padrão (customizáveis): adesão ao plano, dificuldades encontradas, sintomas, peso atual, nível de energia, qualidade do sono, evacuação, prática de atividade física
+- Perguntas sugeridas padrão (customizáveis): adesão às orientações, dificuldades encontradas, sintomas, peso atual, nível de energia, qualidade do sono, evacuação, prática de atividade física
 
 **Agendamento de envio:**
 - Definição da data/prazo de envio de forma flexível:
-  - Prazo relativo (ex: "7 dias após o início do plano", "2 meses após a última consulta")
+  - Prazo relativo (ex: "7 dias após o cadastro", "2 meses após a última consulta")
   - Data fixa específica
-  - Recorrência (ex: enviar a cada 15 dias enquanto o plano estiver ativo)
+  - Recorrência (ex: enviar a cada 15 dias enquanto o paciente estiver ativo)
 - Reenvio automático em caso de não resposta após X dias
+- O paciente responde pelo link recebido, sem necessidade de login — o link é único e vinculado àquele paciente e àquele envio específico
 
 **Canais de envio do questionário — opções, complexidade e custo:**
 
 | Canal | Como funciona | Complexidade de implementação | Custo estimado |
 |---|---|---|---|
 | **E-mail** | Envio automático de link de acesso ao questionário via e-mail transacional | Baixa — serviços como SendGrid, Amazon SES, Resend ou Mailgun têm SDKs prontos e integração simples | Baixo — maioria dos provedores tem faixa gratuita (ex: até 3.000 envios/mês) e cobrança de poucos centavos por e-mail acima disso |
-| **Notificação interna no sistema** | Paciente vê o questionário pendente ao logar na área do paciente (sem depender de canal externo) | Baixa — não depende de integração externa, apenas lógica própria do sistema | Nenhum custo adicional — já incluso no desenvolvimento da plataforma |
-| **Notificação push (navegador ou app)** | Alerta push no navegador (Web Push) ou em app mobile, caso exista | Média — exige configuração de Service Worker, permissões do navegador e serviço de push (ex: Firebase Cloud Messaging); em app nativo exige integração com APNs/FCM | Baixo a médio — Firebase Cloud Messaging é gratuito; custo principal é o tempo de desenvolvimento |
-| **Link direto via WhatsApp (manual)** | Sistema gera o link do questionário e o nutricionista o envia manualmente pelo próprio WhatsApp | Muito baixa — apenas geração de um link (`wa.me/...`) com o link do questionário | Nenhum custo — não usa API paga, mas depende de ação manual do nutricionista |
-| **WhatsApp via API oficial (Business API)** | Envio automático do questionário direto no WhatsApp do paciente, via API oficial da Meta | Alta — exige aprovação de conta comercial Meta, aprovação de templates de mensagem, e geralmente um provedor intermediário (ex: Twilio, Z-API, 360dialog) | Médio a alto — custo por conversa iniciada (varia por país/categoria) + mensalidade do provedor intermediário; pode ficar entre R$ 0,05 e R$ 0,50 por conversa, mais taxa fixa mensal |
+| **Link direto via WhatsApp (manual)** | Sistema gera o link do questionário e a nutricionista o envia manualmente pelo próprio WhatsApp | Muito baixa — apenas geração de um link (`wa.me/...`) com o link do questionário | Nenhum custo — não usa API paga, mas depende de ação manual da nutricionista |
+| **WhatsApp via API oficial (Business API)** | Ver explicação detalhada abaixo | Alta | Médio a alto |
 | **SMS** | Envio do link do questionário via mensagem de texto | Baixa a média — serviços como Twilio ou Zenvia têm integração simples via API | Médio — custo por SMS é mais alto que e-mail (em geral R$ 0,10 a R$ 0,30 por mensagem no Brasil) |
 | **QR Code (impresso ou exibido no consultório)** | QR Code gerado apontando para o questionário, entregue no fim da consulta presencial | Muito baixa — apenas geração de QR Code a partir do link | Nenhum custo — geração de QR Code é gratuita (bibliotecas open source) |
 
-**Recomendação de priorização:**
-- **Fase inicial (MVP):** notificação interna no sistema + e-mail — cobrem a maior parte dos casos com baixo custo e baixa complexidade
-- **Fase intermediária:** link direto via WhatsApp manual (zero custo, alta adesão no Brasil) e QR Code para consultas presenciais
+#### Detalhamento: envio automático via WhatsApp (API oficial)
+
+Essa opção permite que o sistema envie o questionário automaticamente no WhatsApp do paciente, sem qualquer ação manual da nutricionista — diferente do "link direto manual", que exige que ela mesma envie a mensagem.
+
+**Como funciona na prática:**
+1. **Conta comercial no WhatsApp:** é necessário criar uma conta no WhatsApp Business Platform (API oficial da Meta), vinculada a um número de telefone dedicado (não pode ser o número pessoal já usado no WhatsApp comum)
+2. **Provedor intermediário (BSP):** a Meta normalmente não é acessada diretamente por sistemas pequenos — usa-se um provedor homologado (chamado de BSP, ex: Twilio, Z-API, 360dialog, Gupshup), que fornece a API e a infraestrutura de envio
+3. **Aprovação de templates de mensagem:** toda mensagem automática enviada por iniciativa do sistema (fora de uma conversa iniciada pelo paciente) precisa ser um "template" pré-aprovado pela Meta — ex: "Olá {nome}, está na hora de responder seu questionário de acompanhamento: {link}". Não é possível enviar texto livre nesse tipo de envio
+4. **Janela de conversa:** após o paciente responder ou interagir, abre-se uma janela de 24h em que é possível trocar mensagens livres; fora dela, é preciso usar novamente um template aprovado
+5. **Integração técnica:** o sistema faz uma chamada de API para o provedor (BSP), informando o número do paciente, o template e as variáveis (nome, link do questionário); o provedor cuida do envio efetivo pelo WhatsApp
+6. **Webhook de status:** o provedor pode notificar o sistema sobre o status da mensagem (entregue, lida, falhou), permitindo acompanhar se o paciente recebeu o questionário
+
+**Por que a complexidade é alta:**
+- Processo de aprovação de conta comercial e de número de telefone junto à Meta (pode levar dias)
+- Aprovação de cada template de mensagem antes do uso
+- Necessidade de integrar com um provedor terceiro (custo e configuração adicionais)
+- Tratamento de regras específicas (janela de 24h, limites de envio, qualidade da conta)
+
+**Por que o custo é médio/alto:**
+- Cobrança por conversa iniciada pela empresa (varia por categoria e país — no Brasil, tende a ficar entre R$ 0,05 e R$ 0,50 por conversa)
+- Mensalidade ou taxa de uso cobrada pelo provedor intermediário (BSP), que pode ter plano fixo mensal além do custo por mensagem
+- Custo cresce proporcionalmente ao número de pacientes e à frequência de envio dos questionários
+
+**Recomendação:** só compensa adotar essa opção quando o volume de pacientes justificar o investimento; para poucos pacientes, o custo e a complexidade de implementação/homologação não se pagam.
+
+**Recomendação de priorização geral:**
+- **Fase inicial (MVP):** e-mail automático — cobre a maior parte dos casos com baixo custo e baixa complexidade, e é totalmente automatizado pelo sistema
+- **Fase intermediária:** link direto via WhatsApp manual (zero custo, alta adesão no Brasil) e QR Code para consultas presenciais, como reforço ao e-mail
 - **Fase avançada (opcional):** WhatsApp via API oficial — só se justifica com volume alto de pacientes, pois envolve custo recorrente e maior complexidade de homologação; SMS costuma ser dispensável no Brasil dado o uso massivo do WhatsApp
 
 **Acompanhamento das respostas:**
@@ -113,18 +112,18 @@ Sistema web voltado para nutricionistas autônomos ou pequenas clínicas, permit
 
 ## 3. Requisitos Não Funcionais
 
-- **Segurança e privacidade:** dados de saúde são sensíveis (LGPD); autenticação obrigatória, controle de acesso por perfil, criptografia de dados sensíveis
-- **Responsividade:** acesso via desktop (nutricionista) e mobile (paciente, principalmente para responder questionários e visualizar o plano)
-- **Notificações:** envio de e-mail (e, se possível, integração com WhatsApp) para lembretes de questionários e planos
-- **Backup e histórico:** nenhum dado de paciente deve ser excluído permanentemente sem confirmação; manter histórico de planos e respostas
+- **Segurança e privacidade:** dados de saúde são sensíveis (LGPD); autenticação obrigatória para a nutricionista, criptografia de dados sensíveis; o link do questionário enviado ao paciente deve ser único, de uso limitado (evitar reuso/compartilhamento indevido) e sem exigir criação de conta
+- **Responsividade:** acesso via desktop/mobile para a nutricionista, e formulário do questionário responsivo para o paciente (acessado por link, sem necessidade de instalar nada ou logar)
+- **Notificações:** envio automático de e-mail (e, se possível, integração com WhatsApp) para lembretes de questionários
+- **Backup e histórico:** nenhum dado de paciente deve ser excluído permanentemente sem confirmação; manter histórico de respostas
 
 ---
 
 ## 4. Possíveis Evoluções Futuras (fora do escopo inicial)
 
+- Cadastro e envio de plano alimentar
 - Agenda de consultas integrada
 - Cobrança/pagamento online
-- App mobile dedicado para o paciente
 - Integração com balanças/bioimpedância
 - Geração automática de relatório de evolução em PDF
 - Chat direto entre nutricionista e paciente
@@ -135,10 +134,9 @@ Sistema web voltado para nutricionistas autônomos ou pequenas clínicas, permit
 
 | Tela | Descrição |
 |---|---|
-| Login/Autenticação | Acesso do nutricionista e do paciente |
-| Dashboard | Visão geral: pacientes ativos, questionários pendentes, planos a vencer |
+| Login/Autenticação | Acesso exclusivo da nutricionista |
+| Dashboard | Visão geral: pacientes ativos, questionários pendentes |
 | Pacientes | Listagem, cadastro e edição de pacientes |
-| Perfil do Paciente | Dados, histórico de evolução, planos e questionários vinculados |
-| Planos Alimentares | Criação, edição e histórico de planos |
+| Perfil do Paciente | Dados, histórico de evolução e questionários vinculados |
 | Questionários | Criação, agendamento e acompanhamento de respostas |
-| Área do Paciente | Visualização do plano atual e resposta aos questionários |
+| Formulário do Questionário (acesso via link) | Tela pública, sem login, onde o paciente responde ao questionário recebido |
