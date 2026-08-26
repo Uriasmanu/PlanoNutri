@@ -20,14 +20,13 @@ Sistema web voltado para nutricionistas autônomos ou pequenas clínicas, permit
 **Descrição:** tela para o nutricionista cadastrar e gerenciar as informações dos pacientes.
 
 **Campos sugeridos:**
-- Dados pessoais: nome completo, data de nascimento, sexo, telefone, e-mail, CPF (opcional)
+- Dados pessoais: nome completo, data de nascimento, sexo, telefone, e-mail
 - Dados físicos iniciais: peso, altura, percentual de gordura (se disponível), circunferências (cintura, quadril, braço)
 - Objetivo do paciente: emagrecimento, hipertrofia, reeducação alimentar, controle de doença (diabetes, hipertensão, etc.)
 - Restrições e alergias alimentares
 - Histórico clínico relevante (doenças pré-existentes, uso de medicamentos)
 - Nível de atividade física
 - Observações gerais (campo livre)
-- Foto do paciente (opcional)
 
 **Funcionalidades da tela:**
 - Listagem de pacientes com busca e filtros (nome, status ativo/inativo, data da última consulta)
@@ -45,7 +44,6 @@ Sistema web voltado para nutricionistas autônomos ou pequenas clínicas, permit
 **Descrição:** funcionalidade para o nutricionista criar e agendar o envio de questionários de acompanhamento, com prazo definido de forma flexível (ex: 1 semana, 2 meses, 15 dias) a partir do cadastro do paciente ou de uma data específica.
 
 **Configuração do questionário:**
-- Vínculo com um paciente cadastrado
 - Título e descrição do questionário
 - Banco de perguntas reutilizável, com tipos de resposta variados:
   - Texto livre
