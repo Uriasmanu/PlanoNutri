@@ -1,0 +1,10 @@
+[
+  {
+    "id": "usr_001",
+    "email": "nutricionista@planonutri.com",
+    "nome": "Dra. Maria Silva",
+    "senhaHash": "$2a$10$lZmEJfQrC3tvzmCj/QgYvuzTYb70MHkJ9LnJJQ1Ub1EUIfHDe4l5G",
+    "createdAt": "2026-08-01T00:00:00.000Z",
+    "updatedAt": "2026-08-01T00:00:00.000Z"
+  }
+]
