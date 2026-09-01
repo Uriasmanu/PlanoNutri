@@ -48,36 +48,6 @@ export default function HomePage() {
           <p className="text-xs text-muted-foreground mt-1">Disponível na v0.5</p>
         </div>
       </div>
-
-      <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <h2 className="text-lg font-semibold mb-4">Próximos Passos</h2>
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-            v0.1 — Infraestrutura + Autenticação (concluído)
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-yellow-500" />
-            v0.2 — Cadastro de Pacientes (próximo)
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-muted" />
-            v0.3 — Banco de Perguntas + Questionários
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-muted" />
-            v0.4 — Agendamento de Envio
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-muted" />
-            v0.5 — Dashboard + Respostas
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-muted" />
-            v0.6 — Refinamento e Testes
-          </li>
-        </ul>
-      </div>
     </div>
   );
 }

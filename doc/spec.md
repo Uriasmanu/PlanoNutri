@@ -8,6 +8,8 @@
 
 <!-- Ao iniciar qualquer ciclo, a IA deve: ler todos os itens [aberto], corrigir, mover para Histórico de Correções e atualizar os RF/CA/Passos afetados. --> <!-- ### [aberto] Título curto do problema **Comportamento atual:** o que está acontecendo de errado. **Comportamento esperado:** o que deveria acontecer. **Escopo:** onde no código isso precisa ser resolvido (geração, exibição, ambos...). --> <!-- aberto — resolvido em 02/07/2026, movido para Histórico de Correções -->
 
+### [aberto] Todo "banco de dados" tem que estar em JSONs locais, ou seja seguir a arquitetura de banco não relacional porem com arquivos JSON locais
+
 ## Histórico de Correções
 
 ## Feature
