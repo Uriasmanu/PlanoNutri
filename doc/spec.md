@@ -8,11 +8,13 @@
 
 <!-- Ao iniciar qualquer ciclo, a IA deve: ler todos os itens [aberto], corrigir, mover para Histórico de Correções e atualizar os RF/CA/Passos afetados. --> <!-- ### [aberto] Título curto do problema **Comportamento atual:** o que está acontecendo de errado. **Comportamento esperado:** o que deveria acontecer. **Escopo:** onde no código isso precisa ser resolvido (geração, exibição, ambos...). --> <!-- aberto — resolvido em 02/07/2026, movido para Histórico de Correções -->
 
-### [aberto] Todo "banco de dados" tem que estar em JSONs locais, ou seja seguir a arquitetura de banco não relacional porem com arquivos JSON locais
-
-### [aberto] analise toda a aplicação e desenvolva a aba paciente conforme documentações
-
 ## Histórico de Correções
+
+### [resolvido em 01/09/2026] Banco de dados em JSONs locais (arquitetura não relacional com arquivos JSON)
+**Comportamento anterior:** Dúvida se a persistência usaria banco relacional/migrations SQL. **Correção:** Validado e aplicado em v0.1 e v0.2 o padrão file-based `src/lib/db.ts` com coleções `src/data/*.json` (`pacientes.json`, `evolucao_fisica.json`, `usuarios.json`), sem Prisma/Postgres. RF e Passos de v0.2/v0.3 atualizados para `readCollection/writeCollection` e `ensureDataDir()`. **Escopo:** `src/lib/db.ts:1`, `src/app/api/pacientes/**`, `src/app/api/pacientes/[id]/evolucao/**`, `implementado/v0.2-cadastro-pacientes.md` DDR-009. Resolvido dentro do ciclo v0.2.
+
+### [resolvido em 01/09/2026] Aba Paciente conforme documentações (requisitos §2.1 + plano v0.2)
+**Comportamento anterior:** Aba/rota `/pacientes` apenas placeholder na sidebar, sem CRUD, sem evolução, sem gráfico. **Comportamento esperado:** Listagem com busca/filtros/paginação, cadastro/edição com todos os campos, perfil com abas, evolução com gráfico Recharts, soft delete com confirmação — conforme `doc/requisitos.md` §2.1 e `doc/plano-implantacao.md` v0.2. **Correção:** Implementado em `implementado/v0.2-cadastro-pacientes.md` e código `src/app/pacientes/**`, `src/components/pacientes/**`, `src/lib/validations/paciente.ts`, `src/app/api/pacientes/**`. **Escopo:** geração e exibição — backend + frontend. Verificado por `npm run build` e CA-05..CA-08.
 
 ## Feature
 
