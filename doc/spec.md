@@ -10,6 +10,8 @@
 
 ### [aberto] Todo "banco de dados" tem que estar em JSONs locais, ou seja seguir a arquitetura de banco não relacional porem com arquivos JSON locais
 
+### [aberto] analise toda a aplicação e desenvolva a aba paciente conforme documentações
+
 ## Histórico de Correções
 
 ## Feature
