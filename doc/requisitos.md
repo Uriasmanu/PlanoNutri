@@ -39,7 +39,25 @@ Sistema web voltado para nutricionistas autônomos ou pequenas clínicas, permit
 
 ---
 
-### 2.2 Questionário de Acompanhamento com Data Personalizada
+### 2.2 Histórico de Consultas
+
+**Descrição:** registro, por paciente, das consultas já realizadas — serve tanto de histórico quanto de referência temporal para o agendamento de questionários (ex: "2 meses após a última consulta", ver §2.3).
+
+**Campos:**
+- Data da consulta
+- Tipo: primeira consulta ou retorno
+
+**Funcionalidades da tela:**
+- Listagem de consultas do paciente, ordenada da mais recente para a mais antiga, na própria tela de perfil do paciente
+- Cadastro e edição de consulta
+- Exclusão com confirmação (soft delete, mesma regra do restante do sistema — §3)
+- Exibição em destaque da "última consulta" no perfil do paciente
+
+**Fora de escopo nesta funcionalidade:** registro do conteúdo da orientação/plano passado na consulta, observações clínicas livres e agenda de consultas futuras (ver §4, "Agenda de consultas integrada"). Este histórico registra apenas que a consulta aconteceu e quando.
+
+---
+
+### 2.3 Questionário de Acompanhamento com Data Personalizada
 
 **Descrição:** funcionalidade para o nutricionista criar e agendar o envio de questionários de acompanhamento, com prazo definido de forma flexível (ex: 1 semana, 2 meses, 15 dias) a partir do cadastro do paciente ou de uma data específica.
 
@@ -133,8 +151,8 @@ Essa opção permite que o sistema envie o questionário automaticamente no What
 | Tela | Descrição |
 |---|---|
 | Login/Autenticação | Acesso exclusivo da nutricionista |
-| Dashboard | Visão geral: pacientes ativos, questionários pendentes |
+| Dashboard | Lista objetiva de questionários pendentes/atrasados com link rápido para o paciente — sem cards de métricas agregadas, para manter o sistema simples e focado |
 | Pacientes | Listagem, cadastro e edição de pacientes |
-| Perfil do Paciente | Dados, histórico de evolução e questionários vinculados |
+| Perfil do Paciente | Dados, histórico de consultas, histórico de evolução e questionários vinculados |
 | Questionários | Criação, agendamento e acompanhamento de respostas |
 | Formulário do Questionário (acesso via link) | Tela pública, sem login, onde o paciente responde ao questionário recebido |

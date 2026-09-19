@@ -173,12 +173,105 @@ Exigência legal (LGPD, art. 5º, II — dado pessoal sensível) e requisito nã
 
 ---
 
+## DR-009 — Histórico de Consultas como entidade mínima (data + tipo)
+
+**Status:** Aceita
+
+**Data:** Setembro/2026
+
+**Contexto:**
+O requisito de agendamento (DR-004) prevê prazo relativo "à última consulta", mas o sistema não tinha nenhum lugar para registrar quando as consultas aconteceram — só existia "Evolução Física" (peso/medidas), que não é a mesma coisa que o evento da consulta em si.
+
+**Decisão:**
+Criar a entidade `Consulta` (data + tipo: `primeira_consulta` | `retorno`) por paciente, independente da Evolução Física. Não registra orientação/plano passado nem medidas — isso continua fora de escopo (DR-007) ou pode ser revisitado depois.
+
+**Alternativas consideradas:**
+- Fundir Consulta com Evolução Física (registrar tudo junto) — descartada neste ciclo por exigir alterar uma feature já implementada (v0.2) sem necessidade imediata.
+- Consulta completa com orientação/observações/próximos passos — descartada por enquanto (YAGNI); pode crescer depois se o uso real pedir.
+
+**Justificativa:**
+É o mínimo necessário para destravar o campo "última consulta" usado no agendamento de envio, sem reabrir o modelo de Evolução Física já em produção.
+
+**Consequências:**
+- "Última consulta" = `Consulta` não excluída com `dataConsulta` mais recente para aquele paciente.
+- Se no futuro a nutricionista precisar registrar o que foi orientado em cada consulta, isso é uma extensão aditiva (novos campos), não uma quebra de modelo.
+
+---
+
+## DR-010 — Persistência permanece em JSON local; migração para banco adiada
+
+**Status:** Aceita (decisão temporária, com revisão futura obrigatória)
+
+**Data:** Setembro/2026
+
+**Contexto:**
+O deploy definitivo será em plataforma serverless (Vercel/Netlify), onde o filesystem é efêmero/somente leitura em produção — o padrão atual `src/lib/db.ts` com `src/data/*.json` não persiste dados de forma confiável nesse ambiente. A troca de banco (Firebase, cogitado) foi explicitamente adiada pelo usuário para depois.
+
+**Decisão:**
+Continuar desenvolvendo sobre JSON local por enquanto. A migração para um banco persistente (Firebase ou outro) é tratada como **requisito bloqueante antes de ativar envio real e recebimento de respostas em produção** — não antes disso.
+
+**Alternativas consideradas:**
+- Migrar agora para Postgres/Firebase — descartada: usuário priorizou continuar features sobre a base atual.
+
+**Justificativa:**
+Evita parar o desenvolvimento de funcionalidades para fazer uma migração de infraestrutura que só se torna estritamente necessária quando o sistema for de fato exercitado em produção (envio/recebimento real).
+
+**Consequências:**
+- Cadastro de pacientes, consultas, perguntas e questionários funcionam normalmente em desenvolvimento, mas **não devem ser considerados prontos para produção** até a migração.
+- O ciclo de "Agendamento + Envio efetivo + Recebimento" (próximo após Histórico de Consultas) precisa reabrir esta decisão antes de ir ao ar de verdade.
+
+---
+
+## DR-011 — Envio efetivo via Resend + agendamento via Vercel Cron Jobs
+
+**Status:** Aceita (recomendação para o próximo ciclo — ainda não implementada)
+
+**Data:** Setembro/2026
+
+**Contexto:**
+DR-006 já definia e-mail como canal do MVP, mas não a implementação técnica de disparo nem de execução do agendamento/recorrência (DR-004 apontava a necessidade de um "job/scheduler" sem definir qual).
+
+**Decisão:**
+Usar **Resend** como provedor de e-mail transacional (SDK simples para Next.js, free tier compatível com o volume esperado) e **Vercel Cron Jobs** (nativo da plataforma de deploy já escolhida, sem custo/infra extra) para avaliar periodicamente quais `Envio` estão devidos e disparar o e-mail com o link único (token opaco, DR-005).
+
+**Alternativas consideradas:**
+- Fila/worker dedicado (Redis + BullMQ ou similar) — descartada por ser over-engineering para o volume esperado (pequenas clínicas/autônomos); adiciona infraestrutura a operar sem necessidade real ainda.
+- SendGrid/Amazon SES — alternativas válidas, mas Resend foi priorizado pela integração mais simples com Next.js.
+
+**Justificativa:**
+Resolve o "Mecanismo de job/scheduler" (antes em aberto) e o disparo de e-mail com o menor custo operacional possível, usando recursos nativos da própria stack já adotada.
+
+**Consequências:**
+- Recebimento das respostas se dá por uma rota pública (`/responder/[token]`) que reaproveita os componentes de tipo de pergunta já existentes no banco de perguntas — sem duplicar lógica de renderização.
+- Depende da migração de banco (DR-010) estar concluída antes de operar em produção, já que o Cron Job precisa ler/escrever de forma confiável entre execuções.
+
+---
+
+## DR-012 — Dashboard simplificado (lista, sem cards de métricas)
+
+**Status:** Aceita
+
+**Data:** Setembro/2026
+
+**Contexto:**
+O documento de requisitos original previa um dashboard com cards de métricas (total de pacientes ativos, questionários por status, próximos envios). O usuário pediu para manter o site simples, com foco principal em cadastro de paciente e envio de questionário.
+
+**Decisão:**
+O Dashboard vira uma lista objetiva (questionários pendentes/atrasados com link rápido para o paciente), sem cards de métricas agregadas.
+
+**Justificativa:**
+Cards de métricas agregam valor limitado para o volume esperado (poucos pacientes por nutricionista autônoma) e adicionam complexidade de cálculo/agregação que não é o foco do produto.
+
+**Consequências:**
+- Menos telas/componentes para manter.
+- Se o volume de pacientes crescer e métricas agregadas fizerem falta, isso pode ser adicionado depois sem quebrar o modelo de dados.
+
+---
+
 ## Decisões em aberto (não resolvidas pelo documento de requisitos)
 
 Os pontos abaixo precisam de uma decisão explícita antes da implementação, pois o documento de requisitos não os define:
 
-- Stack tecnológica (linguagem/framework de backend, frontend, banco de dados) — ainda não especificada.
-- Política de expiração/uso único do link de questionário (DR-005).
+- Política de expiração/uso único do link de questionário (DR-005) — a definir quando o ciclo de Envio efetivo (DR-011) for implementado.
 - Estratégia de reenvio automático: novo token por reenvio ou reaproveitamento do mesmo link.
 - Definição de "resposta que indica atenção" para o alerta ao nutricionista (regra de negócio, ex: limiares numéricos ou palavras-chave em texto livre).
-- Mecanismo de job/scheduler para agendamento e recorrência (DR-004) — infraestrutura ainda não escolhida.
