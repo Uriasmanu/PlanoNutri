@@ -45,8 +45,6 @@ export const perguntaSchema = z
     }
   });
 
-export const perguntaUpdateSchema = perguntaSchema.partial();
-
 export const questionarioSchema = z.object({
   titulo: z.string().min(2, "Título deve ter pelo menos 2 caracteres").max(120).trim(),
   descricao: z.string().max(2000).nullable().optional(),
