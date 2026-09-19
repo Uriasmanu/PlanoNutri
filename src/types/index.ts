@@ -61,6 +61,19 @@ export interface EvolucaoFisica {
   createdAt: string;
 }
 
+export type TipoConsulta = "primeira_consulta" | "retorno";
+
+export interface Consulta {
+  id: string;
+  nutricionistaId: string;
+  pacienteId: string;
+  dataConsulta: string;
+  tipo: TipoConsulta;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
 export type TipoRespostaPergunta =
   | "texto_livre"
   | "multipla_escolha"
