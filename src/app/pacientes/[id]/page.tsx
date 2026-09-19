@@ -13,21 +13,31 @@ import { StatusBadge } from "@/components/pacientes/StatusBadge";
 import { DeletePatientDialog } from "@/components/pacientes/DeletePatientDialog";
 import { EvolutionChart } from "@/components/pacientes/EvolutionChart";
 import { EvolutionForm } from "@/components/pacientes/EvolutionForm";
+import { ConsultaForm } from "@/components/pacientes/ConsultaForm";
+import { ConsultaList } from "@/components/pacientes/ConsultaList";
+import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
 import { formatDate, calcIdade, getInitials } from "@/lib/formatters";
-import type { Paciente, EvolucaoFisica } from "@/types";
+import type { Paciente, EvolucaoFisica, Consulta } from "@/types";
 import type { EvolucaoFormData } from "@/lib/validations/paciente";
+import type { ConsultaFormData } from "@/lib/validations/consulta";
 
 export default function PacientePerfilPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const [paciente, setPaciente] = useState<Paciente | null>(null);
   const [evolucoes, setEvolucoes] = useState<EvolucaoFisica[]>([]);
+  const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [loading, setLoading] = useState(true);
   const [evoLoading, setEvoLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  const [consultaFormOpen, setConsultaFormOpen] = useState(false);
+  const [editingConsulta, setEditingConsulta] = useState<Consulta | null>(null);
+  const [consultaLoading, setConsultaLoading] = useState(false);
+  const [deleteConsultaTarget, setDeleteConsultaTarget] = useState<Consulta | null>(null);
+  const [deletingConsulta, setDeletingConsulta] = useState(false);
 
   async function loadPaciente() {
     const res = await fetch(`/api/pacientes/${params.id}`);
@@ -44,11 +54,20 @@ export default function PacientePerfilPage() {
     }
   }
 
+  async function loadConsultas() {
+    const res = await fetch(`/api/pacientes/${params.id}/consultas`);
+    if (res.ok) {
+      const json = await res.json();
+      setConsultas(json.data);
+    }
+  }
+
   useEffect(() => {
     async function load() {
       try {
         await loadPaciente();
         await loadEvolucoes();
+        await loadConsultas();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Erro ao carregar");
       } finally {
@@ -80,6 +99,52 @@ export default function PacientePerfilPage() {
     }
   }
 
+  async function handleSaveConsulta(data: ConsultaFormData) {
+    setConsultaLoading(true);
+    try {
+      const url = editingConsulta
+        ? `/api/pacientes/${params.id}/consultas/${editingConsulta.id}`
+        : `/api/pacientes/${params.id}/consultas`;
+      const method = editingConsulta ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const json = await res.json();
+        throw new Error(json.error || "Erro ao salvar consulta");
+      }
+      await loadConsultas();
+      setConsultaFormOpen(false);
+      setEditingConsulta(null);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro ao salvar");
+    } finally {
+      setConsultaLoading(false);
+    }
+  }
+
+  function handleEditConsulta(consulta: Consulta) {
+    setEditingConsulta(consulta);
+    setConsultaFormOpen(true);
+  }
+
+  async function handleDeleteConsulta() {
+    if (!deleteConsultaTarget) return;
+    setDeletingConsulta(true);
+    try {
+      const res = await fetch(`/api/pacientes/${params.id}/consultas/${deleteConsultaTarget.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Erro ao excluir consulta");
+      await loadConsultas();
+      setDeleteConsultaTarget(null);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro ao excluir");
+    } finally {
+      setDeletingConsulta(false);
+    }
+  }
+
   async function handleDelete() {
     setDeleting(true);
     try {
@@ -92,6 +157,8 @@ export default function PacientePerfilPage() {
       setDeleting(false);
     }
   }
+
+  const ultimaConsulta = consultas[0] ?? null;
 
   if (loading) {
     return (
@@ -151,14 +218,18 @@ export default function PacientePerfilPage() {
                 {calcIdade(paciente.dataNascimento)} anos • {paciente.sexo} • {paciente.objetivo.replace("_", " ")} • {paciente.nivelAtividadeFisica}
               </p>
               <p className="text-xs text-muted-foreground">Cadastrado em {formatDate(paciente.createdAt)} • Atualizado em {formatDate(paciente.updatedAt)}</p>
+              <p className="text-xs text-muted-foreground">
+                {ultimaConsulta ? `Última consulta: ${formatDate(ultimaConsulta.dataConsulta)}` : "Nenhuma consulta registrada"}
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
       <Tabs defaultValue="dados" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-[400px]">
+        <TabsList className="grid w-full grid-cols-4 max-w-[520px]">
           <TabsTrigger value="dados">Dados</TabsTrigger>
+          <TabsTrigger value="consultas">Consultas</TabsTrigger>
           <TabsTrigger value="evolucao">Evolução</TabsTrigger>
           <TabsTrigger value="questionarios">Questionários</TabsTrigger>
         </TabsList>
@@ -203,6 +274,49 @@ export default function PacientePerfilPage() {
               <div><span className="text-muted-foreground block mb-1">Restrições alimentares:</span> {paciente.restricoesAlimentares || "—"}</div>
               <div><span className="text-muted-foreground block mb-1">Histórico clínico:</span> {paciente.historicoClinico || "—"}</div>
               <div><span className="text-muted-foreground block mb-1">Observações:</span> {paciente.observacoes || "—"}</div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="consultas" className="space-y-4 mt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Consultas</h3>
+            {!consultaFormOpen && (
+              <Button
+                size="sm"
+                onClick={() => {
+                  setEditingConsulta(null);
+                  setConsultaFormOpen(true);
+                }}
+              >
+                Nova consulta
+              </Button>
+            )}
+          </div>
+
+          {consultaFormOpen && (
+            <ConsultaForm
+              key={editingConsulta?.id ?? "new"}
+              defaultValues={
+                editingConsulta
+                  ? { dataConsulta: editingConsulta.dataConsulta.slice(0, 10), tipo: editingConsulta.tipo }
+                  : undefined
+              }
+              onSubmit={handleSaveConsulta}
+              isSubmitting={consultaLoading}
+              onCancel={() => {
+                setConsultaFormOpen(false);
+                setEditingConsulta(null);
+              }}
+            />
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Histórico ({consultas.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ConsultaList consultas={consultas} onEdit={handleEditConsulta} onDelete={setDeleteConsultaTarget} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -258,14 +372,23 @@ export default function PacientePerfilPage() {
         <TabsContent value="questionarios" className="mt-4">
           <Card>
             <CardContent className="p-10 text-center">
-              <p className="text-sm text-muted-foreground">Questionários vinculados aparecerão aqui a partir da v0.4.</p>
-              <p className="text-xs text-muted-foreground mt-1">Agendamento e envios serão configurados nas próximas versões.</p>
+              <p className="text-sm text-muted-foreground">Questionários vinculados aparecerão aqui quando o agendamento de envio for implementado.</p>
+              <p className="text-xs text-muted-foreground mt-1">Agendamento e envio de questionários serão configurados no próximo ciclo do roadmap.</p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
       <DeletePatientDialog open={deleteOpen} onOpenChange={setDeleteOpen} pacienteNome={paciente.nomeCompleto} onConfirm={handleDelete} loading={deleting} />
+
+      <ConfirmDeleteDialog
+        open={!!deleteConsultaTarget}
+        onOpenChange={(open) => !open && setDeleteConsultaTarget(null)}
+        title="Excluir consulta?"
+        description="Tem certeza que deseja excluir esta consulta? Esta ação fará soft delete (a consulta não aparecerá mais na listagem, mas o histórico será preservado)."
+        onConfirm={handleDeleteConsulta}
+        loading={deletingConsulta}
+      />
     </div>
   );
 }
