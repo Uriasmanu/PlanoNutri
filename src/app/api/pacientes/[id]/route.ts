@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readCollection, writeCollection } from "@/lib/db";
 import { getAuth } from "@/lib/auth-helpers";
 import { pacienteSchema } from "@/lib/validations/paciente";
-import type { Paciente } from "@/types";
+import type { Paciente, Envio } from "@/types";
 
 const COLLECTION = "pacientes";
 
@@ -67,6 +67,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     all[idx] = updated;
     writeCollection(COLLECTION, all);
+
+    if (updated.status === "inativo") {
+      const envios = readCollection<Envio>("envios");
+      const cancelados = envios.map((e) =>
+        e.pacienteId === updated.id && e.status === "agendado"
+          ? { ...e, status: "cancelado" as const, updatedAt: new Date().toISOString() }
+          : e
+      );
+      writeCollection("envios", cancelados);
+    }
+
     return NextResponse.json({ data: updated });
   } catch (e) {
     console.error("[pacientes PUT]", e);
