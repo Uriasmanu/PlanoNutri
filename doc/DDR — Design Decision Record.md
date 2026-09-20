@@ -268,10 +268,56 @@ Cards de métricas agregam valor limitado para o volume esperado (poucos pacient
 
 ---
 
+## DR-013 — Agendamento (v0.5) sem disparo, sem link e sem recorrência
+
+**Status:** Aceita
+
+**Data:** Setembro/2026
+
+**Contexto:**
+O usuário decidiu que nenhum disparo (real ou simulado) deveria ser construído agora, porque ainda não escolheu o canal (e-mail via Resend, WhatsApp, ou outro — ver DR-014). Isso esvazia de sentido, por ora, qualquer lógica que dependa de um envio efetivamente acontecer: geração de link/token (DR-005), tela pública de resposta, recorrência automática (repetir sozinho) e reenvio automático por não resposta.
+
+**Decisão:**
+v0.5 entrega **só a configuração do agendamento**: a nutricionista define quando um questionário deveria ser enviado (prazo relativo ao cadastro ou à última consulta, ou data fixa) e vê isso numa lista com status "agendado" / "atrasado" (calculado) / "cancelado". Nenhum link é gerado, nenhuma resposta é recebida pelo sistema neste ciclo. `TipoAgendamento` fica reduzido a `"relativo" | "data_fixa"` (recorrência sai do tipo por ora); `StatusEnvio` fica `"agendado" | "cancelado"`.
+
+**Alternativas consideradas:**
+- Implementar com fallback simulado (registrar "enviado" sem API real, mostrar e-mail simulado na UI) — chegou a ser desenhado nesta sessão, mas descartado a pedido do usuário: ele prefere não construir nenhuma lógica de disparo (nem simulada) até decidir o canal, para não ter que desfazer/retrabalhar essa lógica quando a decisão for tomada.
+
+**Justificativa:**
+Entrega valor real (a nutricionista sabe quando cada questionário "vence") sem se comprometer com uma decisão de canal que ainda não foi tomada, e sem construir código que precisaria ser jogado fora ou retrabalhado depois.
+
+**Consequências:**
+- Link (DR-005), recebimento de respostas, recorrência e reenvio automático (DR-004) voltam a ficar em aberto — serão desenhados juntos no ciclo de disparo efetivo (DR-014), quando o canal for decidido.
+- `Resposta`/`RespostaItem` (tipos já existentes, não usados) continuam sem uso até esse ciclo futuro.
+
+---
+
+## DR-014 — Disparo efetivo movido para o final do roadmap
+
+**Status:** Aceita
+
+**Data:** Setembro/2026
+
+**Contexto:**
+DR-011 (desta mesma sessão) recomendava Resend + Vercel Cron Jobs para o disparo automático. O usuário esclareceu que ainda não decidiu o canal — pode ser e-mail, WhatsApp, ou outro — e por isso não quer que o disparo seja construído agora nem em qualquer ordem intermediária do roadmap.
+
+**Decisão:**
+DR-011 fica **suspensa** (não descartada — pode voltar a ser a recomendação quando o canal for decidido). O disparo efetivo + recebimento de respostas passa a ser o **último** item do roadmap, depois inclusive das evoluções futuras já cogitadas (plano alimentar, agenda integrada, integração com balanças, PDF, chat) — ver `doc/plano-implantacao.md` para a ordem atualizada.
+
+**Justificativa:**
+Evita construir e depois ter que refazer uma integração externa (e-mail vs WhatsApp têm modelos de custo, complexidade e UX de link bem diferentes — ver `doc/requisitos.md` tabela de canais) antes de uma decisão de produto que só o usuário pode tomar.
+
+**Consequências:**
+- Cobrança/pagamento online foi removida do roadmap por completo (não é mais uma evolução futura cogitada) — o usuário confirmou que não pretende cobrar dos pacientes.
+- Quando o ciclo de disparo começar, revisitar DR-011 (Resend/Vercel Cron ainda é uma recomendação válida se o canal escolhido for e-mail) e reabrir as "Decisões em aberto" abaixo.
+
+---
+
 ## Decisões em aberto (não resolvidas pelo documento de requisitos)
 
 Os pontos abaixo precisam de uma decisão explícita antes da implementação, pois o documento de requisitos não os define:
 
-- Política de expiração/uso único do link de questionário (DR-005) — a definir quando o ciclo de Envio efetivo (DR-011) for implementado.
+- **Canal de disparo efetivo:** e-mail, WhatsApp ou outro (DR-014) — bloqueia todo o restante desta lista até ser decidido.
+- Política de expiração/uso único do link de questionário (DR-005) — a definir junto com o canal.
 - Estratégia de reenvio automático: novo token por reenvio ou reaproveitamento do mesmo link.
 - Definição de "resposta que indica atenção" para o alerta ao nutricionista (regra de negócio, ex: limiares numéricos ou palavras-chave em texto livre).

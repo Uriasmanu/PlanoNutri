@@ -79,6 +79,8 @@ Sistema web voltado para nutricionistas autônomos ou pequenas clínicas, permit
 - Reenvio automático em caso de não resposta após X dias
 - O paciente responde pelo link recebido, sem necessidade de login — o link é único e vinculado àquele paciente e àquele envio específico
 
+> **Nota de escopo (v0.5, DR-013/DR-014):** o ciclo atual implementa só a **configuração** do agendamento (prazo relativo, data fixa e cálculo da data prevista) e a listagem/cancelamento. Recorrência automática, reenvio por não resposta, geração de link/token e recebimento da resposta ficam para o último ciclo do roadmap (v0.12), quando o canal de disparo abaixo for escolhido.
+
 **Canais de envio do questionário — opções, complexidade e custo:**
 
 | Canal | Como funciona | Complexidade de implementação | Custo estimado |
@@ -135,14 +137,17 @@ Essa opção permite que o sistema envie o questionário automaticamente no What
 
 ---
 
-## 4. Possíveis Evoluções Futuras (fora do escopo inicial)
+## 4. Possíveis Evoluções Futuras
+
+Priorizadas no roadmap (`doc/plano-implantacao.md` v0.7–v0.11), cada uma com seu próprio ciclo de planejamento quando chegar a vez:
 
 - Cadastro e envio de plano alimentar
-- Agenda de consultas integrada
-- Cobrança/pagamento online
+- Agenda de consultas integrada (diferente do Histórico de Consultas de §2.2, que só registra consultas já realizadas)
 - Integração com balanças/bioimpedância
 - Geração automática de relatório de evolução em PDF
 - Chat direto entre nutricionista e paciente
+
+**Removido do escopo:** cobrança/pagamento online — o usuário confirmou que não pretende cobrar dos pacientes pela plataforma.
 
 ---
 
