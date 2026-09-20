@@ -20,6 +20,7 @@ export function EnvioForm({ defaultPacienteId, onSubmit, isSubmitting }: Props) 
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [questionarios, setQuestionarios] = useState<Questionario[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const {
     register,
@@ -40,21 +41,35 @@ export function EnvioForm({ defaultPacienteId, onSubmit, isSubmitting }: Props) 
 
   useEffect(() => {
     async function load() {
-      const [pRes, qRes] = await Promise.all([
-        fetch("/api/pacientes?status=ativo&pageSize=50"),
-        fetch("/api/questionarios?status=ativo&pageSize=50"),
-      ]);
-      const pJson = await pRes.json();
-      const qJson = await qRes.json();
-      if (pRes.ok) setPacientes(pJson.data);
-      if (qRes.ok) setQuestionarios(qJson.data);
-      setLoadingOptions(false);
+      try {
+        const [pRes, qRes] = await Promise.all([
+          fetch("/api/pacientes?status=ativo&pageSize=50"),
+          fetch("/api/questionarios?status=ativo&pageSize=50"),
+        ]);
+        const pJson = await pRes.json();
+        const qJson = await qRes.json();
+        if (pRes.ok) setPacientes(pJson.data);
+        if (qRes.ok) setQuestionarios(qJson.data);
+      } catch (e) {
+        console.error("[EnvioForm load]", e);
+        setLoadError(true);
+      } finally {
+        setLoadingOptions(false);
+      }
     }
     load();
   }, []);
 
   if (loadingOptions) {
     return <p className="text-sm text-muted-foreground">Carregando...</p>;
+  }
+
+  if (loadError) {
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        Erro ao carregar pacientes/questionários. Tente novamente.
+      </p>
+    );
   }
 
   return (
