@@ -97,6 +97,15 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     all[idx] = { ...all[idx], deletedAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     writeCollection(COLLECTION, all);
+
+    const envios = readCollection<Envio>("envios");
+    const cancelados = envios.map((e) =>
+      e.pacienteId === all[idx].id && e.status === "agendado"
+        ? { ...e, status: "cancelado" as const, updatedAt: new Date().toISOString() }
+        : e
+    );
+    writeCollection("envios", cancelados);
+
     return NextResponse.json({ message: "Paciente removido com sucesso" });
   } catch (e) {
     console.error("[pacientes DELETE]", e);
