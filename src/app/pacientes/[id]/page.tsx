@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,10 +16,12 @@ import { EvolutionForm } from "@/components/pacientes/EvolutionForm";
 import { ConsultaForm } from "@/components/pacientes/ConsultaForm";
 import { ConsultaList } from "@/components/pacientes/ConsultaList";
 import { ConfirmDeleteDialog } from "@/components/ui/confirm-delete-dialog";
+import { EnvioList } from "@/components/envios/EnvioList";
 import { formatDate, calcIdade, getInitials } from "@/lib/formatters";
 import type { Paciente, EvolucaoFisica, Consulta } from "@/types";
 import type { EvolucaoFormData } from "@/lib/validations/paciente";
 import type { ConsultaFormData } from "@/lib/validations/consulta";
+import type { EnvioEnriquecido } from "@/lib/envios";
 
 export default function PacientePerfilPage() {
   const params = useParams<{ id: string }>();
@@ -38,6 +40,9 @@ export default function PacientePerfilPage() {
   const [consultaLoading, setConsultaLoading] = useState(false);
   const [deleteConsultaTarget, setDeleteConsultaTarget] = useState<Consulta | null>(null);
   const [deletingConsulta, setDeletingConsulta] = useState(false);
+  const [envios, setEnvios] = useState<EnvioEnriquecido[]>([]);
+  const [cancelEnvioTarget, setCancelEnvioTarget] = useState<EnvioEnriquecido | null>(null);
+  const [cancellingEnvio, setCancellingEnvio] = useState(false);
 
   async function loadPaciente() {
     const res = await fetch(`/api/pacientes/${params.id}`);
@@ -62,12 +67,21 @@ export default function PacientePerfilPage() {
     }
   }
 
+  async function loadEnvios() {
+    const res = await fetch(`/api/envios?pacienteId=${params.id}&status=todos`);
+    if (res.ok) {
+      const json = await res.json();
+      setEnvios(json.data);
+    }
+  }
+
   useEffect(() => {
     async function load() {
       try {
         await loadPaciente();
         await loadEvolucoes();
         await loadConsultas();
+        await loadEnvios();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Erro ao carregar");
       } finally {
@@ -142,6 +156,21 @@ export default function PacientePerfilPage() {
       alert(e instanceof Error ? e.message : "Erro ao excluir");
     } finally {
       setDeletingConsulta(false);
+    }
+  }
+
+  async function handleCancelEnvio() {
+    if (!cancelEnvioTarget) return;
+    setCancellingEnvio(true);
+    try {
+      const res = await fetch(`/api/envios/${cancelEnvioTarget.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Erro ao cancelar agendamento");
+      await loadEnvios();
+      setCancelEnvioTarget(null);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Erro ao cancelar");
+    } finally {
+      setCancellingEnvio(false);
     }
   }
 
@@ -369,11 +398,18 @@ export default function PacientePerfilPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="questionarios" className="mt-4">
+        <TabsContent value="questionarios" className="space-y-4 mt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Questionários agendados</h3>
+            <Button size="sm" asChild>
+              <Link href={`/envios/novo?pacienteId=${paciente.id}`}>
+                <Plus className="h-4 w-4 mr-1" /> Agendar questionário
+              </Link>
+            </Button>
+          </div>
           <Card>
-            <CardContent className="p-10 text-center">
-              <p className="text-sm text-muted-foreground">Questionários vinculados aparecerão aqui quando o agendamento de envio for implementado.</p>
-              <p className="text-xs text-muted-foreground mt-1">Agendamento e envio de questionários serão configurados no próximo ciclo do roadmap.</p>
+            <CardContent className="p-4">
+              <EnvioList envios={envios} showPaciente={false} onCancel={setCancelEnvioTarget} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -388,6 +424,15 @@ export default function PacientePerfilPage() {
         description="Tem certeza que deseja excluir esta consulta? Esta ação fará soft delete (a consulta não aparecerá mais na listagem, mas o histórico será preservado)."
         onConfirm={handleDeleteConsulta}
         loading={deletingConsulta}
+      />
+
+      <ConfirmDeleteDialog
+        open={!!cancelEnvioTarget}
+        onOpenChange={(open) => !open && setCancelEnvioTarget(null)}
+        title="Cancelar agendamento?"
+        description="O agendamento será marcado como cancelado e sai da listagem padrão, mas continua no histórico."
+        onConfirm={handleCancelEnvio}
+        loading={cancellingEnvio}
       />
     </div>
   );
