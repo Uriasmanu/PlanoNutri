@@ -124,15 +124,11 @@ export type CanalEnvio =
   | "qrcode"
   | "sms";
 
-export type TipoAgendamento = "relativo" | "data_fixa" | "recorrencia";
+export type TipoAgendamento = "relativo" | "data_fixa";
 
-export type StatusEnvio =
-  | "agendado"
-  | "pendente_envio"
-  | "enviado"
-  | "respondido"
-  | "atrasado"
-  | "cancelado";
+export type ReferenciaRelativa = "cadastro" | "ultima_consulta";
+
+export type StatusEnvio = "agendado" | "cancelado";
 
 export interface Envio {
   id: string;
@@ -143,13 +139,9 @@ export interface Envio {
   tipoAgendamento: TipoAgendamento;
   configuracaoAgendamento: Record<string, unknown>;
   dataEnvioPrevista: string;
-  dataEnvioEfetiva: string | null;
   status: StatusEnvio;
-  token: string | null;
-  respondidoEm: string | null;
   createdAt: string;
   updatedAt: string;
-  deletedAt: string | null;
 }
 
 export interface Resposta {
